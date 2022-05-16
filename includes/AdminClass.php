@@ -8,6 +8,7 @@
  * @copyright Lex Brugman <lex_brugman@users.sourceforge.net>
  * @copyright Christian Beer <djangofett@gmx.net>
  * @copyright Ricardo Padilha <ricardo@droboports.com>
+ * @copyright Nicolas BERTRAND <n.bertrand@2isr.fr>
  *
  */
 
@@ -142,6 +143,30 @@ class AdminClass {
         if (!$result) return false;
         return $result;
     }
+	
+	/**
+     * retrieves all quota from db and populates an associative array
+     * @return Array an array containing the users or false on failure
+     */
+	function get_quotas() {
+		$format = 'SELECT *,a.name as quotaname,a.quota_type as quotatype FROM %s as a left join %s as b on a.%s = b.%s and a.%s = b.%s';
+        $query = sprintf($format,$this->config['table_quotalimits'],$this->config['table_quotatallies'],$this->config['field_quota_name'],$this->config['field_quota_name'],$this->config['field_quota_type'],$this->config['field_quota_type']);
+		$result = $this->dbConn->get_results($query, ARRAY_A);
+        if (!$result) return false;
+        return $result;
+	}
+	
+		/**
+     * retrieves all quota from db and populates an associative array
+     * @return Array an array containing the users or false on failure
+     */
+	function get_quota_by_id($id) { // 
+		$format = 'SELECT *,a.name as quotaname,a.quota_type as quotatype FROM %s as a left join %s as b on a.%s = b.%s and a.%s = b.%s where %s=%s';
+        $query = sprintf($format,$this->config['table_quotalimits'],$this->config['table_quotatallies'],$this->config['field_quota_name'],$this->config['field_quota_name'],$this->config['field_quota_type'],$this->config['field_quota_type'],$this->config['field_id'],$id);
+		$result = $this->dbConn->get_results($query, ARRAY_A);
+        if (!$result) return false;
+        return $result;
+	}
 
     /**
      * returns either the total number or the number of empty groups in the db
@@ -376,6 +401,20 @@ class AdminClass {
         if (empty($id)) return false;
         $format = 'SELECT * FROM %s WHERE %s="%s"';
         $query = sprintf($format, $this->config['table_users'], $this->config['field_id'], $id);
+        $result = $this->dbConn->get_row($query, ARRAY_A);
+        if (!$result) return false;
+        return $result;
+    }
+	
+	/**
+     * retrieve a user by uid
+     * @param Integer $did
+     * @return Array 
+     */
+    function get_user_by_uid($uid) {
+        if (empty($uid)) return false;
+        $format = 'SELECT * FROM %s WHERE %s="%s"';
+        $query = sprintf($format, $this->config['table_users'], $this->config['field_uid'], $uid);
         $result = $this->dbConn->get_row($query, ARRAY_A);
         if (!$result) return false;
         return $result;

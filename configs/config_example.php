@@ -34,6 +34,26 @@ $cfg['field_bytes_out_used'] = "bytes_out_used";
 $cfg['field_files_in_used'] = "files_in_used";
 $cfg['field_files_out_used'] = "files_out_used";
 
+//quota limit
+$cfg['field_quota_name'] = "name";
+$cfg['field_quota_type'] = "quota_type";
+$cfg['field_quota_per_session'] = "per_session";
+$cfg['field_quota_limit_type'] = "limit_type";
+$cfg['field_quota_bytes_in_avail'] = "bytes_in_avail";
+$cfg['field_quota_bytes_out_avail'] = "bytes_out_avail";
+$cfg['field_quota_bytes_xfer_avail'] = "bytes_xfer_avail";
+$cfg['field_quota_files_in_avail'] = "files_in_avail";
+$cfg['field_quota_files_out_avail'] = "files_out_avail";
+$cfg['field_quota_files_xfer_avail'] = "files_xfer_avail";
+//quota tally
+$cfg['field_quota_bytes_in_used'] = "bytes_in_used";
+$cfg['field_quota_bytes_out_used'] = "bytes_out_used";
+$cfg['field_quota_bytes_xfer_used'] = "bytes_xfer_used";
+$cfg['field_quota_files_in_used'] = "files_in_used";
+$cfg['field_quota_files_out_used'] = "files_out_used";
+$cfg['field_quota_files_xfer_used'] = "files_xfer_used";
+
+
 $cfg['table_groups'] = "groups";
 $cfg['field_groupname'] = "groupname";
 $cfg['field_gid'] = "gid";

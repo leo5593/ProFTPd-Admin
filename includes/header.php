@@ -22,8 +22,10 @@
             <li <?php if (strpos($_SERVER['REQUEST_URI'], 'index.php') !== FALSE) { ?>class="active"<?php } ?>><a href="index.php">Home</a></li>
             <li <?php if (strpos($_SERVER['REQUEST_URI'], 'groups.php') !== FALSE) { ?>class="active"<?php } ?>><a href="groups.php">Groups</a></li>
             <li <?php if (strpos($_SERVER['REQUEST_URI'], 'users.php') !== FALSE) { ?>class="active"<?php } ?>><a href="users.php">Users</a></li>
+			<li <?php if (strpos($_SERVER['REQUEST_URI'], 'quota.php') !== FALSE) { ?>class="active"<?php } ?>><a href="quota.php">Quotas</a></li>
             <li <?php if (strpos($_SERVER['REQUEST_URI'], 'add_group.php') !== FALSE) { ?>class="active"<?php } ?>><a href="add_group.php">Add group</a></li>
             <li <?php if (strpos($_SERVER['REQUEST_URI'], 'add_user.php') !== FALSE) { ?>class="active"<?php } ?>><a href="add_user.php">Add user</a></li>
+			<li <?php if (strpos($_SERVER['REQUEST_URI'], 'edit_quota.php') !== FALSE) { ?>class="active"<?php } ?>><a href="edit_quota.php">Add quota</a></li>
           </ul>
         </div><!-- /.navbar-collapse -->
       </div>
