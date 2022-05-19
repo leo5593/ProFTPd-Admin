@@ -38,3 +38,36 @@ CREATE TABLE `users` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `userid` (`userid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci COMMENT='ProFTPd user table';
+
+#
+# Table structure for table `quotalimits`
+#
+
+CREATE TABLE `quotalimits` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(30) DEFAULT NULL,
+  `quota_type` enum('user','group','class','all') NOT NULL,
+  `per_session` enum('false','true') NOT NULL,
+  `limit_type` enum('soft','hard') NOT NULL,
+  `bytes_in_avail` float NOT NULL,
+  `bytes_out_avail` float NOT NULL,
+  `bytes_xfer_avail` float NOT NULL,
+  `files_in_avail` int(10) UNSIGNED NOT NULL,
+  `files_out_avail` int(10) UNSIGNED NOT NULL,
+  `files_xfer_avail` int(10) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+#
+# Table structure for table `quotatallies`
+#
+
+CREATE TABLE `quotatallies` (
+  `name` varchar(30) NOT NULL,
+  `quota_type` enum('user','group','class','all') NOT NULL,
+  `bytes_in_used` float NOT NULL,
+  `bytes_out_used` float NOT NULL,
+  `bytes_xfer_used` float NOT NULL,
+  `files_in_used` int(10) UNSIGNED NOT NULL,
+  `files_out_used` int(10) UNSIGNED NOT NULL,
+  `files_xfer_used` int(10) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
