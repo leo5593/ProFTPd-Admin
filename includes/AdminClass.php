@@ -304,6 +304,65 @@ class AdminClass {
      * @param Array $userdata
      * @return Boolean true on success, false on failure
      */
+    function add_quota($userdata) {
+		
+		$field_quota_name			= $this->config['field_quota_name'];
+		
+        $field_quota_type			= $this->config['field_quota_type'];
+        $field_quota_per_session	= $this->config['field_quota_per_session'];
+        $field_quota_limit_type		= $this->config['field_quota_limit_type'];
+		
+        $field_quota_bytes_in_avail		= $this->config['field_quota_bytes_in_avail'];
+        $field_quota_bytes_out_avail	= $this->config['field_quota_bytes_out_avail'];
+        $field_quota_bytes_xfer_avail	= $this->config['field_quota_bytes_xfer_avail'];
+		
+        $field_quota_files_in_avail		= $this->config['field_quota_files_in_avail'];
+        $field_quota_files_out_avail	= $this->config['field_quota_files_out_avail'];
+        $field_quota_files_xfer_avail	= $this->config['field_quota_files_xfer_avail'];
+		
+		
+        $format = 'INSERT INTO %s (%s, %s,%s,%s, %s,%s,%s, %s,%s,%s) VALUES ("%s", "%s","%s","%s", %s,%s,%s, %s,%s,%s)';
+        $query = sprintf($format, $this->config['table_quotalimits'],
+									$field_quota_name	,
+		
+									$field_quota_type			,
+									$field_quota_per_session	,
+									$field_quota_limit_type		,
+
+									$field_quota_bytes_in_avail		,
+									$field_quota_bytes_out_avail	,
+									$field_quota_bytes_xfer_avail	,
+
+									$field_quota_files_in_avail		,
+									$field_quota_files_out_avail	,
+									$field_quota_files_xfer_avail	,
+								 
+                                  $userdata[$field_quota_name],
+								  
+                                  $userdata[$field_quota_type],
+                                  $userdata[$field_quota_per_session],
+                                  $userdata[$field_quota_limit_type],
+								  
+                                  $userdata[$field_quota_bytes_in_avail],
+                                  $userdata[$field_quota_bytes_out_avail],
+                                  $userdata[$field_quota_bytes_xfer_avail],
+								  
+                                  $userdata[$field_quota_files_in_avail],
+                                  $userdata[$field_quota_files_out_avail],
+                                  $userdata[$field_quota_files_xfer_avail]
+                                  );
+		
+        $result = $this->dbConn->query($query);
+		if($result===1)
+			return $this->dbConn->insert_id;
+        return $result;
+    }
+	
+    /**
+     * Adds a quota entry into the database
+     * @param Array $userdata
+     * @return Boolean true on success, false on failure
+     */
     function add_user($userdata) {
         $field_userid   = $this->config['field_userid'];
         $field_uid      = $this->config['field_uid'];
@@ -363,7 +422,7 @@ class AdminClass {
         $result = $this->dbConn->query($query);
         return $result;
     }
-
+	
     /**
      * retrieve a group by gid
      * @param Integer $gid
@@ -594,6 +653,20 @@ class AdminClass {
         $result = $this->dbConn->query($query);
         return $result;
     }
+	
+	/**
+     * delete a quota by id
+     * @param Integer $gid
+     * @return Boolean true on success, false on failure
+     */
+    function delete_quota($name,$type) {
+        $format = 'DELETE FROM %s WHERE %s="%s" and %s="%s"';
+        $query = sprintf($format, $this->config['table_quotalimits'], $this->config['field_quota_name'], $name, $this->config['field_quota_type'], $type);
+        $result1 = $this->dbConn->query($query);
+		$query = sprintf($format, $this->config['table_quotatallies'], $this->config['field_quota_name'], $name, $this->config['field_quota_type'], $type);
+        $result2 = $this->dbConn->query($query);
+        return $result1;
+    }
 
     /**
      * updates the user entry in the database
@@ -653,6 +726,47 @@ class AdminClass {
                                   $field_disabled, $userdata[$field_disabled],
                                   $field_last_modified, date('Y-m-d H:i:s'),
                                   $field_id,       $userdata[$field_id]);
+        $result = $this->dbConn->query($query);
+        return $result;
+    }
+
+    /**
+     * updates the quota entry in the database
+     * @param Array $userdata
+     * @return Boolean true on success, false on failure
+     */
+    function update_quota($userdata) {
+	
+        $field_id       = $this->config['field_id'];
+		
+        $field_quota_type			= $this->config['field_quota_type'];
+        $field_quota_per_session	= $this->config['field_quota_per_session'];
+        $field_quota_limit_type		= $this->config['field_quota_limit_type'];
+		
+        $field_quota_bytes_in_avail		= $this->config['field_quota_bytes_in_avail'];
+        $field_quota_bytes_out_avail	= $this->config['field_quota_bytes_out_avail'];
+        $field_quota_bytes_xfer_avail	= $this->config['field_quota_bytes_xfer_avail'];
+		
+        $field_quota_files_in_avail		= $this->config['field_quota_files_in_avail'];
+        $field_quota_files_out_avail	= $this->config['field_quota_files_out_avail'];
+        $field_quota_files_xfer_avail	= $this->config['field_quota_files_xfer_avail'];
+		
+        $format = 'UPDATE %s SET %s="%s", %s="%s", %s="%s", %s="%s", %s="%s", %s="%s", %s="%s", %s="%s", %s="%s" WHERE %s="%s"';
+        $query = sprintf($format, $this->config['table_quotalimits'],
+                             								  
+                                  $field_quota_type,		$userdata[$field_quota_type],
+                                  $field_quota_per_session,	$userdata[$field_quota_per_session],
+                                  $field_quota_limit_type,	$userdata[$field_quota_limit_type],
+								  
+                                  $field_quota_bytes_in_avail,	$userdata[$field_quota_bytes_in_avail],
+                                  $field_quota_bytes_out_avail,	$userdata[$field_quota_bytes_out_avail],
+                                  $field_quota_bytes_xfer_avail,$userdata[$field_quota_bytes_xfer_avail],
+								  
+                                  $field_quota_files_in_avail,	$userdata[$field_quota_files_in_avail],
+                                  $field_quota_files_out_avail,	$userdata[$field_quota_files_out_avail],
+                                  $field_quota_files_xfer_avail,$userdata[$field_quota_files_xfer_avail],
+								  
+                                  $field_id,	$userdata[$field_id]);
         $result = $this->dbConn->query($query);
         return $result;
     }

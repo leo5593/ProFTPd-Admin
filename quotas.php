@@ -144,10 +144,10 @@ include ("includes/header.php");
           <div class="form-group">
             <table class="table table-striped table-condensed sortable">
               <thead>
-                <th>UID</th>
+                
 				<th><span class="glyphicon glyphicon-tent" aria-hidden="true" title="Type"></span> NAME</th>
                  
-                <th class="hidden-xs hidden-sm" data-defaultsort="disabled">Per Session</th>
+                <th class="hidden-xs hidden-sm hidden-md" data-defaultsort="disabled">Per Session</th>
                 <th class="hidden-xs hidden-sm hidden-md">Limit Type</th>
 				
                 <th class="hidden-xs"><span class="glyphicon glyphicon-cloud-upload" aria-hidden="true" title="Uploaded data"></th>
@@ -158,13 +158,13 @@ include ("includes/header.php");
                 <th class="hidden-xs"><span class="glyphicon glyphicon-save-file" aria-hidden="true" title="Downloaded files"></th>
 				<th class="hidden-xs"><span class="glyphicon glyphicon-file" aria-hidden="true" title="Transferred files"></th>
 				
-				<th>Actions</th>
+				<th></th>
 
               </thead>
               <tbody>
                 <?php foreach ($all_quotas as $quota) { ?>
                   <tr>
-                    <td class="pull-middle"><?php echo $quota[$field_id]; ?></td>
+                    
                     <td class="pull-middle">
 						<?php if($quota["quotatype"] == "user") { ?>
 							<span class="glyphicon glyphicon-user" aria-hidden="true" title="User">
@@ -174,8 +174,8 @@ include ("includes/header.php");
 						<a href="edit_quota.php?action=show&<?php echo $field_id; ?>=<?php echo $quota[$field_id]; ?>"><?php echo $quota["quotaname"]; ?></a>
 					</td>
                 	
-					<td class="pull-middle hidden-xs"><?php echo $quota[$field_quota_per_session]; ?></</td>
-					<td class="pull-middle hidden-xs"><?php echo $quota[$field_quota_limit_type]; ?></td>
+					<td class="pull-middle hidden-xs hidden-sm hidden-md"><?php echo $quota[$field_quota_per_session]; ?></</td>
+					<td class="pull-middle hidden-xs hidden-sm hidden-md"><?php echo $quota[$field_quota_limit_type]; ?></td>
 					
                     <td class="pull-middle hidden-xs"><?php echo formatBytes($quota[$field_quota_bytes_in_used],$quota[$field_quota_bytes_in_avail]); ?></td>
                     <td class="pull-middle hidden-xs"><?php echo formatBytes($quota[$field_quota_bytes_out_used],$quota[$field_quota_bytes_out_avail]); ?></td>
@@ -198,7 +198,7 @@ include ("includes/header.php");
           </div>
           <!-- Actions -->
           <div class="form-group">
-            <a class="btn btn-primary pull-right" href="add_user.php" role="button">Add quota &raquo;</a>
+            <a class="btn btn-primary pull-right" href="edit_quota.php" role="button">Add quota &raquo;</a>
           </div>
         </div>
       </div>

@@ -72,11 +72,10 @@ if (empty($_REQUEST[$field_id])) {
 
 
 
-$groups = $ac->get_groups();
 
 $id = $_REQUEST[$field_id];
 if (!$ac->is_valid_id($id)) {
-  $errormsg = 'Invalid ID; must be a positive integer.';
+  //$errormsg = 'Invalid ID; must be a positive integer.';
 } else {
   $quota = $ac->get_quota_by_id($id)[0];
 
@@ -88,129 +87,197 @@ if (!$ac->is_valid_id($id)) {
   }
 }
 
-var_dump($_REQUEST);
+
 
 if (empty($errormsg) && !empty($_REQUEST["action"]) && $_REQUEST["action"] == "update") {
   $errors = array();
-  /* user id validation */
-  if (empty($_REQUEST[$field_userid])
-      || !preg_match($cfg['userid_regex'], $_REQUEST[$field_userid])
-      || strlen($_REQUEST[$field_userid]) > $cfg['max_userid_length']) {
-    array_push($errors, 'Invalid user name; user name must contain only letters, numbers, hyphens, and underscores with a maximum of '.$cfg['max_userid_length'].' characters.');
-  }
-  /* uid validation */
-  if (empty($_REQUEST[$field_uid]) || !$ac->is_valid_id($_REQUEST[$field_uid])) {
-    array_push($errors, 'Invalid UID; must be a positive integer.');
-  }
-  if ($cfg['max_uid'] != -1 && $cfg['min_uid'] != -1) {
-    if ($_REQUEST[$field_uid] > $cfg['max_uid'] || $_REQUEST[$field_uid] < $cfg['min_uid']) {
-      array_push($errors, 'Invalid UID; UID must be between ' . $cfg['min_uid'] . ' and ' . $cfg['max_uid'] . '.');
-    }
-  } else if ($cfg['max_uid'] != -1 && $_REQUEST[$field_uid] > $cfg['max_uid']) {
-    array_push($errors, 'Invalid UID; UID must be at most ' . $cfg['max_uid'] . '.');
-  } else if ($cfg['min_uid'] != -1 && $_REQUEST[$field_uid] < $cfg['min_uid']) {
-    array_push($errors, 'Invalid UID; UID must be at least ' . $cfg['min_uid'] . '.');
-  }
-  /* gid validation */
-  if (empty($_REQUEST[$field_ugid]) || !$ac->is_valid_id($_REQUEST[$field_ugid])) {
-    array_push($errors, 'Invalid main group; GID must be a positive integer.');
-  }
-  /* password length validation */
-  if (strlen($_REQUEST[$field_passwd]) > 0 && strlen($_REQUEST[$field_passwd]) < $cfg['min_passwd_length']) {
-    array_push($errors, 'Password is too short; minimum length is '.$cfg['min_passwd_length'].' characters.');
-  }
-  /* home directory validation */
-  if (strlen($_REQUEST[$field_homedir]) <= 1) {
-    array_push($errors, 'Invalid home directory; home directory cannot be empty.');
-  }
-  /* shell validation */
-  if (strlen($_REQUEST[$field_shell]) <= 1) {
-    array_push($errors, 'Invalid shell; shell cannot be empty.');
-  }
-  /* user name uniqueness validation */
-  if ($userid != $_REQUEST[$field_userid] && $ac->check_username($_REQUEST[$field_userid])) {
-    array_push($errors, 'User name already exists; name must be unique.');
-  }
-  /* gid existance validation */
-  if (!$ac->check_gid($_REQUEST[$field_ugid])) {
-    array_push($errors, 'Main group does not exist; GID '.$_REQUEST[$field_ugid].' cannot be found in the database.');
-  }
-  /* data validation passed */
-  if (count($errors) == 0) {
-    /* remove all groups */
-    while (list($g_gid, $g_group) = each($groups)) {
-      if (!$ac->remove_user_from_group($userid, $g_gid)) {
-        array_push($errors, 'Cannot remove user "'.$userid.'" from group "'.$g_group.'"; see log files for more information.');
-        break;
-      }
-    }
-  }
+  
+	$v=toByteSize($_REQUEST[$field_quota_bytes_in_avail]);
+	if($v===false)
+		array_push($errors, 'Invalid value for Upload Bytes');
+	else
+		$_REQUEST[$field_quota_bytes_in_avail]=$v;
+	
+	$v=toByteSize($_REQUEST[$field_quota_bytes_out_avail]);
+	if($v===false)
+		array_push($errors, 'Invalid value for Download Bytes');
+	else
+		$_REQUEST[$field_quota_bytes_out_avail]=$v;
+	
+	$v=toByteSize($_REQUEST[$field_quota_bytes_xfer_avail]);
+	if($v===false)
+		array_push($errors, 'Invalid value for Transfer Bytes');
+	else
+		$_REQUEST[$field_quota_bytes_xfer_avail]=$v;
+
+	$v=intval($_REQUEST[$field_quota_files_in_avail]);
+	if($v<0)
+		array_push($errors, 'Invalid value for Upload Files '.$v);
+	else
+		$_REQUEST[$field_quota_files_in_avail]=$v;
+	
+	$v=intval($_REQUEST[$field_quota_files_out_avail]);
+	if($v<0)
+		array_push($errors, 'Invalid value for Download Files '.$v);
+	else
+		$_REQUEST[$field_quota_files_out_avail]=$v;
+
+	$v=intval($_REQUEST[$field_quota_files_xfer_avail]);
+	if($v<0)
+		array_push($errors, 'Invalid value for Transfer Files '.$v);
+	else
+		$_REQUEST[$field_quota_files_xfer_avail]=$v;
+		
+		
+	if(isset($_REQUEST[$field_quota_per_session]))
+		$_REQUEST[$field_quota_per_session]="true";
+	else
+		$_REQUEST[$field_quota_per_session]="false";
+
+
   if (count($errors) == 0) {
     /* update quota */
 	
     $disabled = isset($_REQUEST[$field_disabled]) ? '1':'0';
     $userdata = array($field_id       => $_REQUEST[$field_id],
-                      $field_userid   => $_REQUEST[$field_userid],
-                      $field_uid      => $_REQUEST[$field_uid],
-                      $field_ugid     => $_REQUEST[$field_ugid],
-                      $field_passwd   => $_REQUEST[$field_passwd],
-                      $field_homedir  => $_REQUEST[$field_homedir],
-                      $field_shell    => $_REQUEST[$field_shell],
-                      $field_title    => $_REQUEST[$field_title],
-                      $field_name     => $_REQUEST[$field_name],
-                      $field_email    => $_REQUEST[$field_email],
-                      $field_company  => $_REQUEST[$field_company],
-                      $field_comment  => $_REQUEST[$field_comment],
-                      $field_disabled => $disabled);
-    if (!$ac->update_quota($userdata)) {
-      $errormsg = 'User "'.$_REQUEST[$field_userid].'" update failed; check log files.';
+	
+                      //$field_userid   => $_REQUEST[$field_userid],
+                      //$field_uid      => $_REQUEST[$field_uid],
+                      //$field_ugid     => $_REQUEST[$field_ugid],
+                      //$field_passwd   => $_REQUEST[$field_passwd],
+                      //$field_homedir  => $_REQUEST[$field_homedir],
+					  
+					  $cfg['field_quota_type']	=> $_REQUEST[$field_quota_type],
+					  $field_quota_per_session	=> $_REQUEST[$field_quota_per_session],
+					  $field_quota_limit_type	=> $_REQUEST[$field_quota_limit_type],
+					  
+                      $field_quota_bytes_in_avail	=> $_REQUEST[$field_quota_bytes_in_avail],
+                      $field_quota_bytes_out_avail  => $_REQUEST[$field_quota_bytes_out_avail],
+                      $field_quota_bytes_xfer_avail	=> $_REQUEST[$field_quota_bytes_xfer_avail],
+                      $field_quota_files_in_avail	=> $_REQUEST[$field_quota_files_in_avail],
+                      $field_quota_files_out_avail	=> $_REQUEST[$field_quota_files_out_avail],
+                      $field_quota_files_xfer_avail	=> $_REQUEST[$field_quota_files_xfer_avail] );
+
+	  $v=$ac->update_quota($userdata);
+    if ($v===false) {
+      $errormsg = 'Quota "'.$_REQUEST[$field_userid].'" update failed; check log files.';
     } else {
-      /* update user data */
-      $quota = $ac->get_quota_by_id($id);
+      /* update quota data */
+      $quota = $ac->get_quota_by_id($id)[0];
     }
   } else {
     $errormsg = implode($errors, "<br />\n");
   }
   
 }
-
-if($quota[$field_quota_type]=="user")
+else if (empty($errormsg) && !empty($_REQUEST["action"]) && $_REQUEST["action"] == "remove")
 {
-	$user=$ac->get_user_by_uid($quota[$field_quota_xid]);
-	$userid = $user[$field_userid];
-	//$ugid = $user[$field_ugid];
-	//$group = $ac->get_group_by_gid($ugid);
-	$uid      = $user[$field_uid];
-}
-
-if($quota[$field_quota_type]=="group")
-{
-	$user=$ac->get_group_by_gid($quota[$field_quota_xid]);
+	echo "Delete quota ".$quota[$field_quota_name]." ".$quota[$field_quota_type];
+	$ac->delete_quota($quota[$field_quota_name],$quota[$field_quota_type]);
 	
-	$userid = $user[$field_groupname];
-	$uid    = $user[$field_gid];
+	header("Location: quotas.php");
+	die();
+}
+else if (empty($errormsg) && !empty($_REQUEST["action"]) && $_REQUEST["action"] == "new")
+{
+	//echo "NEW quota ".$quota[$field_quota_name]." ".$quota[$field_quota_type];
+	
+	$v=toByteSize($_REQUEST[$field_quota_bytes_in_avail]);
+	if($v===false)
+		array_push($errors, 'Invalid value for Upload Bytes');
+	else
+		$_REQUEST[$field_quota_bytes_in_avail]=$v;
+	
+	$v=toByteSize($_REQUEST[$field_quota_bytes_out_avail]);
+	if($v===false)
+		array_push($errors, 'Invalid value for Download Bytes');
+	else
+		$_REQUEST[$field_quota_bytes_out_avail]=$v;
+	
+	$v=toByteSize($_REQUEST[$field_quota_bytes_xfer_avail]);
+	if($v===false)
+		array_push($errors, 'Invalid value for Transfer Bytes');
+	else
+		$_REQUEST[$field_quota_bytes_xfer_avail]=$v;
+
+	$v=intval($_REQUEST[$field_quota_files_in_avail]);
+	if($v<0)
+		array_push($errors, 'Invalid value for Upload Files '.$v);
+	else
+		$_REQUEST[$field_quota_files_in_avail]=$v;
+	
+	$v=intval($_REQUEST[$field_quota_files_out_avail]);
+	if($v<0)
+		array_push($errors, 'Invalid value for Download Files '.$v);
+	else
+		$_REQUEST[$field_quota_files_out_avail]=$v;
+
+	$v=intval($_REQUEST[$field_quota_files_xfer_avail]);
+	if($v<0)
+		array_push($errors, 'Invalid value for Transfer Files '.$v);
+	else
+		$_REQUEST[$field_quota_files_xfer_avail]=$v;
+	
+	if(isset($_REQUEST[$field_quota_per_session]))
+		$_REQUEST[$field_quota_per_session]="true";
+	else
+		$_REQUEST[$field_quota_per_session]="false";
+	
+	$name = explode("-",$_REQUEST["quotaname"])[1];
+	$type = explode("-",$_REQUEST["quotaname"])[0];
+	
+	
+	$userdata = array($cfg['field_quota_name']       => $name,
+						  
+					  $cfg['field_quota_type']	=> $type,
+					  $field_quota_per_session	=> $_REQUEST[$field_quota_per_session],
+					  $field_quota_limit_type	=> $_REQUEST[$field_quota_limit_type],
+					  
+                      $field_quota_bytes_in_avail	=> $_REQUEST[$field_quota_bytes_in_avail],
+                      $field_quota_bytes_out_avail  => $_REQUEST[$field_quota_bytes_out_avail],
+                      $field_quota_bytes_xfer_avail	=> $_REQUEST[$field_quota_bytes_xfer_avail],
+					  
+                      $field_quota_files_in_avail	=> $_REQUEST[$field_quota_files_in_avail],
+                      $field_quota_files_out_avail	=> $_REQUEST[$field_quota_files_out_avail],
+                      $field_quota_files_xfer_avail	=> $_REQUEST[$field_quota_files_xfer_avail] );
+	
+	$v=$ac->add_quota($userdata);
+	
+	//var_dump($_REQUEST);
+	if ($v===false) {
+      $errormsg = 'Quota "'.$_REQUEST[$field_userid].'" insert failed; check log files.';
+    } else {
+      /* update quota data */
+		//var_dump($v);
+	  $id=$v;
+      $quota = $ac->get_quota_by_id($id)[0];
+    }
+	
+}
+else if( !$id ) {
+
+	$quota=array();
+	$quota[$field_quota_files_in_avail]=0;
+	$quota[$field_quota_files_out_avail]=0;
+	$quota[$field_quota_files_xfer_avail]=0;
+	
+	$all_quotas = $ac->get_quotas();
+	$quotas = array();
+	foreach($all_quotas as $key => $value)
+		array_push($quotas,$value["quotatype"]."-".$value["quotaname"]);
+	
+	$groups = $ac->get_groups();
+	$users=$ac->get_users();
+	
 	
 }
 
 /* Form values */
 if (empty($errormsg)) {
-  /* Default values */
-  //$uid      = $user[$field_uid];
-  /*
-  $ugid     = $user[$field_ugid];
-  $passwd   = '';
-  $homedir  = $user[$field_homedir];
-  $shell    = $user[$field_shell];
-  $title    = $user[$field_title];
-  $name     = $user[$field_name];
-  $email    = $user[$field_email];
-  $company  = $user[$field_company];
-  $comment  = $user[$field_comment];
-  $disabled = $user[$field_disabled];
-  */
+  
   $qname= $quota["quotaname"]; //$field_quota_name=cfg['field_quota_name'];
   $type= $quota["quotatype"]; //"$field_quota_type=$cfg['field_quota_type'];
-  $session= $quota[$field_quota_per_session];
+  $per_session= ($quota[$field_quota_per_session]=="true");
   $limit= $quota[$field_quota_limit_type];
   
   $bia= $quota[$field_quota_bytes_in_avail];
@@ -220,31 +287,47 @@ if (empty($errormsg)) {
   $foa= $quota[$field_quota_files_out_avail];
   $fxa= $quota[$field_quota_files_xfer_avail];
   
-  /*
-  $biu= $quota[$field_quota_bytes_in_used];
-  $bou= $quota[$field_quota_bytes_out_used];
-  $bxu= $quota[$field_quota_bytes_xfer_used];
-  $fiu= $quota[$field_quota_files_in_used];
-  $fou= $quota[$field_quota_files_out_used];
-  $fxu= $quota[$field_quota_files_xfer_used];
-  */
   
 } else {
-  /* This is a failed attempt */
-  //$userid   = $_REQUEST[$field_userid];
-  //$uid      = $_REQUEST[$field_uid];
-  //$ugid     = $_REQUEST[$field_ugid];
-  $ad_gid   = $_REQUEST[$field_ad_gid];
-  $passwd   = $_REQUEST[$field_passwd];
-  $homedir  = $_REQUEST[$field_homedir];
-  $shell    = $_REQUEST[$field_shell];
-  $title    = $_REQUEST[$field_title];
-  $name     = $_REQUEST[$field_name];
-  $email    = $_REQUEST[$field_email];
-  $company  = $_REQUEST[$field_company];
-  $comment  = $_REQUEST[$field_comment];
-  $disabled = isset($_REQUEST[$field_disabled]) ? '1' : '0';
+	  
+  $type=$_REQUEST["quotatype"]; //"$field_quota_type=$cfg['field_quota_type'];
+  $per_session= $_REQUEST[$field_quota_per_session]=="true";
+  $limit= $_REQUEST[$field_quota_limit_type];
+  
+  $bia= $_REQUEST[$field_quota_bytes_in_avail];
+  $boa= $_REQUEST[$field_quota_bytes_out_avail];
+  $bxa= $_REQUEST[$field_quota_bytes_xfer_avail];
+  $fia= $_REQUEST[$field_quota_files_in_avail];
+  $foa= $_REQUEST[$field_quota_files_out_avail];
+  $fxa= $_REQUEST[$field_quota_files_xfer_avail];
+ 
 }
+
+if($quota[$field_quota_type]=="user")
+{
+	$user=$ac->get_user_by_userid($qname);//$quota[$field_quota_xid]);
+	$userid = $user[$field_userid];
+	$xid      = $user[$field_uid];
+}
+
+
+
+if($quota[$field_quota_type]=="group")
+{
+	$xid="";
+	$groups = $ac->get_groups();
+	foreach ($groups as $key => $value)
+	{
+		if($value==$qname)
+			$xid.=$key;
+	}
+	
+	
+	if($xid=="")
+		$xid="No Match";
+	
+}
+
 
 function formatBytes($bytes, $precision = 2) { 
     $units = array('B', 'KB', 'MB', 'GB', 'TB'); 
@@ -264,6 +347,31 @@ function formatBytes($bytes, $precision = 2) {
     return round($bytes, $precision) . ' ' . $units[$pow]; 
 } 
 
+function floatvalue($val){
+            $val = str_replace(",",".",$val);
+            $val = preg_replace('/\.(?=.*\.)/', '', $val);
+            return floatval($val);
+}
+
+function toByteSize($p_sFormatted) {
+	if($p_sFormatted == "Unlimited")
+		return 0;
+    $aUnits = array('B'=>0, 'KB'=>1, 'MB'=>2, 'GB'=>3, 'TB'=>4, 'PB'=>5, 'EB'=>6, 'ZB'=>7, 'YB'=>8);
+    $sUnit = strtoupper(trim(substr($p_sFormatted, -2)));
+    if (intval($sUnit) !== 0 || $sUnit==="0" || $sUnit==="00") {
+		$p_sFormatted = $p_sFormatted." B";
+        $sUnit = 'B';
+    }
+    if (!in_array($sUnit, array_keys($aUnits))) {
+        return false;
+    }
+    $iUnits = trim(substr($p_sFormatted, 0, strlen($p_sFormatted) - 2));
+    if (!intval($iUnits) == $iUnits) {
+        return false;
+    }
+    return intval(floatval($iUnits) * pow(1024, $aUnits[$sUnit]));
+}
+
 include ("includes/header.php");
 ?>
 <?php include ("includes/messages.php"); ?>
@@ -272,6 +380,7 @@ include ("includes/header.php");
 
 <!-- User metadata panel -->
 <div class="col-xs-12 col-sm-6">
+	<?php if ($id) { ?>
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title">
@@ -285,7 +394,7 @@ include ("includes/header.php");
           <div class="form-group">
             <label for="<?php echo $field_quota_bytes_in_used; ?>" class="col-sm-4 control-label"><span class="glyphicon glyphicon-cloud-upload" aria-hidden="true" title="Uploaded data"></span> Uploaded Bytes</label>
             <div class="controls col-sm-8">
-              <input type="text" class="form-control" id="<?php echo $field_quota_bytes_in_used; ?>" name="<?php echo $field_quota_bytes_in_used; ?>" value="<?php echo formatBytes($quota[$field_quota_bytes_out_used]); ?>" readonly />
+              <input type="text" class="form-control" id="<?php echo $field_quota_bytes_in_used; ?>" name="<?php echo $field_quota_bytes_in_used; ?>" value="<?php echo formatBytes($quota[$field_quota_bytes_in_used]); ?>" readonly />
             </div>
           </div>
           <!--  -->
@@ -327,6 +436,7 @@ include ("includes/header.php");
       </div>
     </div>
   </div>
+  <?php } ?>
   <?php if ($type == 'user') { ?>
   <div class="panel panel-default">
     <div class="panel-heading">
@@ -397,7 +507,7 @@ include ("includes/header.php");
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title">
-        <a data-toggle="collapse" href="#userprops" aria-expanded="true" aria-controls="userprops">Quota properties</a>
+        <a data-toggle="collapse" href="#userprops" aria-expanded="true" aria-controls="userprops">Quota limit</a>
       </h3>
     </div>
     <div class="panel-body collapse in" id="userprops" aria-expanded="true">
@@ -407,80 +517,138 @@ include ("includes/header.php");
           <div class="form-group">
             <label for="<?php echo $field_quota_bytes_in_avail; ?>" class="col-sm-4 control-label"><span class="glyphicon glyphicon-cloud-upload" aria-hidden="true" title="Uploaded data"></span> Upload Bytes</label>
             <div class="controls col-sm-8">
-              <input type="text" class="form-control" id="<?php echo $field_quota_bytes_in_avail; ?>" name="<?php echo $field_quota_bytes_in_avail; ?>" value="<?php echo $bia; ?>" />
+              <input type="text" class="form-control" id="<?php echo $field_quota_bytes_in_avail; ?>" name="<?php echo $field_quota_bytes_in_avail; ?>" value="<?php echo formatBytes($bia); ?>" />
             </div>
           </div>
           <!--  -->
           <div class="form-group">
-            <label for="<?php echo $field_quota_bytes_out_used; ?>" class="col-sm-4 control-label"><span class="glyphicon glyphicon-cloud-download" aria-hidden="true" title="Downloaded data"></span> Download Bytes</label>
+            <label for="<?php echo $field_quota_bytes_out_avail; ?>" class="col-sm-4 control-label"><span class="glyphicon glyphicon-cloud-download" aria-hidden="true" title="Downloaded data"></span> Download Bytes</label>
             <div class="controls col-sm-8">
-              <input type="text" class="form-control" id="<?php echo $field_quota_bytes_out_used; ?>" name="<?php echo $field_quota_bytes_out_used; ?>" value="<?php echo $boa; ?>" />
+              <input type="text" class="form-control" id="<?php echo $field_quota_bytes_out_avail; ?>" name="<?php echo $field_quota_bytes_out_avail; ?>" value="<?php echo formatBytes($boa); ?>" />
             </div>
           </div>
           <!--  -->
           <div class="form-group">
-            <label for="<?php echo $field_quota_bytes_xfer_used; ?>" class="col-sm-4 control-label"><span class="glyphicon glyphicon-cloud" aria-hidden="true" title="Transferred data"></span> Transfer Bytes</label>
+            <label for="<?php echo $field_quota_bytes_xfer_avail; ?>" class="col-sm-4 control-label"><span class="glyphicon glyphicon-cloud" aria-hidden="true" title="Transferred data"></span> Transfer Bytes</label>
             <div class="controls col-sm-8">
-              <input type="text" class="form-control" id="<?php echo $field_quota_bytes_xfer_used; ?>" name="<?php echo $field_quota_bytes_xfer_used; ?>" value="<?php echo $bxa; ?>" />
+              <input type="text" class="form-control" id="<?php echo $field_quota_bytes_xfer_avail; ?>" name="<?php echo $field_quota_bytes_xfer_avail; ?>" value="<?php echo formatBytes($bxa); ?>" />
             </div>
           </div>
           <!--  -->
           <div class="form-group">
-            <label for="<?php echo $field_quota_files_in_used; ?>" class="col-sm-4 control-label"><span class="glyphicon glyphicon-open-file" aria-hidden="true" title="Uploaded files"></span> Upload Files</label>
+            <label for="<?php echo $field_quota_files_in_avail; ?>" class="col-sm-4 control-label"><span class="glyphicon glyphicon-open-file" aria-hidden="true" title="Uploaded files"></span> Upload Files</label>
             <div class="controls col-sm-8">
-              <input type="text" class="form-control" id="<?php echo $field_quota_files_in_used; ?>" name="<?php echo $field_quota_files_in_used; ?>" value="<?php echo $fia; ?>" />
+              <input type="text" class="form-control" id="<?php echo $field_quota_files_in_avail; ?>" name="<?php echo $field_quota_files_in_avail; ?>" value="<?php echo $fia; ?>" />
+			  <p class="help-block"><small>0 as unlimited.</small></p>
             </div>
           </div>
           <!--  -->
           <div class="form-group">
-            <label for="<?php echo $field_quota_files_out_used; ?>" class="col-sm-4 control-label"><span class="glyphicon glyphicon-save-file" aria-hidden="true" title="Downloaded files"></span> Download Files</label>
+            <label for="<?php echo $field_quota_files_out_avail; ?>" class="col-sm-4 control-label"><span class="glyphicon glyphicon-save-file" aria-hidden="true" title="Downloaded files"></span> Download Files</label>
             <div class="controls col-sm-8">
-              <input type="text" class="form-control" id="<?php echo $field_quota_files_out_used; ?>" name="<?php echo $field_quota_files_out_used; ?>" value="<?php echo $foa; ?>" />
+              <input type="text" class="form-control" id="<?php echo $field_quota_files_out_avail; ?>" name="<?php echo $field_quota_files_out_avail; ?>" value="<?php echo $foa; ?>" />
+			  <p class="help-block"><small>0 as unlimited.</small></p>
             </div>
           </div>
           <!--  -->
           <div class="form-group">
-            <label for="<?php echo $field_quota_files_xfer_used; ?>" class="col-sm-4 control-label"><span class="glyphicon glyphicon-file" aria-hidden="true" title="Transferred files"></span> Transfer Files</label>
+            <label for="<?php echo $field_quota_files_xfer_avail; ?>" class="col-sm-4 control-label"><span class="glyphicon glyphicon-file" aria-hidden="true" title="Transferred files"></span> Transfer Files</label>
             <div class="controls col-sm-8">
-              <input type="text" class="form-control" id="<?php echo $field_quota_files_xfer_used; ?>" name="<?php echo $field_quota_files_xfer_used; ?>" value="<?php echo $fxa ?>" />
+              <input type="text" class="form-control" id="<?php echo $field_quota_files_xfer_avail; ?>" name="<?php echo $field_quota_files_xfer_avail; ?>" value="<?php echo $fxa ?>" />
+			  <p class="help-block"><small>0 as unlimited.</small></p>
             </div>
           </div>
 		
-		 <!--  -->
-		<div class="form-group">
-			<label for="<?php echo $field_quota_type; ?>" class="col-sm-4 control-label">Type</label>
-			<div class="col-sm-8">
-				<select class="form-control" id="<?php echo $field_quota_type; ?>" name="<?php echo $field_quota_type; ?>" required>
-					<option value="m" <?php if ($type == 'user') { echo 'selected="selected"'; } ?>>User</option>
-					<option value="f" <?php if ($type == 'group') { echo 'selected="selected"'; } ?>>Group</option>
-					<!--
-					<option value="f" <?php if ($type == 'class') { echo 'selected="selected"'; } ?>>Class</option>
-					<option value="f" <?php if ($type == 'all') { echo 'selected="selected"'; } ?>>All</option>
-					-->
-				</select>
+			<!--  -->
+			<?php if ($id) { ?>
+			<div class="form-group">
+				<label for="<?php echo $field_quota_type; ?>" class="col-sm-4 control-label">Type</label>
+				<div class="col-sm-8">
+					<select class="form-control" id="<?php echo $field_quota_type; ?>" name="<?php echo $field_quota_type; ?>" required>
+						<option value="user" <?php if ($type == 'user') { echo 'selected="selected"'; } ?>>User</option>
+						<option value="group" <?php if ($type == 'group') { echo 'selected="selected"'; } ?>>Group</option>
+						<!--
+						<option value="f" <?php if ($type == 'class') { echo 'selected="selected"'; } ?>>Class</option>
+						<option value="f" <?php if ($type == 'all') { echo 'selected="selected"'; } ?>>All</option>
+						-->
+					</select>
+				</div>
 			</div>
-		</div>
+			<?php } ?>
+			<!--  -->
+			
+			<div class="form-group">
+				<label for="<?php echo $field_quota_limit_type; ?>" class="col-sm-4 control-label">Limit</label>
+				<div class="col-sm-8">
+					<select class="form-control" id="<?php echo $field_quota_limit_type; ?>" name="<?php echo $field_quota_limit_type; ?>" required>
+						<option value="soft" <?php if ($limit == 'soft') { echo 'selected="selected"'; } ?>>Soft</option>
+						<option value="hard" <?php if ($limit == 'hard') { echo 'selected="selected"'; } ?>>Hard</option>
+					</select>
+					<p class="help-block"><small>Hard limit type means that a user's tally will never be allowed to exceed the limit</small></p>
+				</div>
+			</div>
+			
+			<!--  -->
+			<div class="form-group">
+				<label for="<?php echo $field_quota_per_session; ?>" class="col-sm-4 control-label">Per Session</label>
+				<div class="col-sm-8">
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="<?php echo $field_quota_per_session; ?>" name="<?php echo $field_quota_per_session; ?>" <?php if ($per_session) { echo 'checked="checked"'; } ?> />
+						</label>
+					</div>
+				</div>
+			</div>
 		
           <!-- User name -->
+		  
           <div class="form-group">
-            <label for="<?php echo $field_userid; ?>" class="col-sm-4 control-label">User name</label>
+            <label for="<?php echo $field_quota_name; ?>" class="col-sm-4 control-label">Quota name</label>
+			
             <div class="controls col-sm-8">
-              <input type="text" class="form-control" id="<?php echo $field_userid; ?>" name="<?php echo $field_userid; ?>" value="<?php echo $userid; ?>" placeholder="Enter a user name" maxlength="<?php echo $cfg['max_userid_length']; ?>" pattern="<?php echo substr($cfg['userid_regex'], 2, -3); ?>" readonly />
-            </div>
+			<?php if($id) { ?>
+              <input type="text" class="form-control" id="<?php echo $field_quota_name; ?>" name="<?php echo $field_quota_name; ?>" value="<?php echo $qname; ?>" placeholder="Enter a user name" maxlength="<?php echo $cfg['max_userid_length']; ?>" pattern="<?php echo substr($cfg['userid_regex'], 2, -3); ?>" readonly />
+            
+			<?php } else { ?>
+				<select class="form-control" id="<?php echo $field_quota_name; ?>" name="<?php echo $field_quota_name; ?>" required>
+				    <option value="" ></option>
+					<?php foreach ($groups as $key => $value){
+							if(!in_array("group-".$value,$quotas)) {
+						?>
+					<option value="group-<?php echo $value ?>" ><?php echo "Group> $value" ?></option>
+						<?php } } ?>
+					<option value="" ></option>
+					<?php foreach ($users as $key => $value){
+							if(!in_array("user-".$value[$field_userid],$quotas)) {						
+							?>
+					<option value="user-<?php echo $value[$field_userid] ?>" ><?php echo "User> ".$value[$field_userid] ?></option>
+						<?php } } ?>
+				</select>
+			<?php } ?>
+			</div>
           </div>
+		  		  
           <!-- UID -->
+		  <?php if ($id) { ?>
           <div class="form-group">
-            <label for="<?php echo $field_uid; ?>" class="col-sm-4 control-label"><?php if ($type == 'user') echo U; else echo G;?>ID</label>
+            <label for="xid" class="col-sm-4 control-label"><?php if ($type == 'user') echo U; else echo G;?>ID Match</label>
             <div class="controls col-sm-8">
-              <input type="number" class="form-control" id="<?php echo $field_uid; ?>" name="<?php echo $field_uid; ?>" value="<?php echo $uid; ?>" min="1" placeholder="Enter a UID" readonly />
+              <input class="form-control" id="xid" name="xid" value="<?php echo $xid; ?>" min="1" placeholder="Enter a UID" readonly />
             </div>
           </div>
+		  <?php } ?>
           <!-- Actions -->
           <div class="form-group">
             <div class="col-sm-12">
+			<?php if ($id) { ?>
               <input type="hidden" name="<?php echo $field_id; ?>" value="<?php echo $id; ?>" />
-              <a class="btn btn-danger" href="remove_user.php?action=remove&<?php echo $field_id; ?>=<?php echo $id; ?>">Remove quota</a>
-              <button type="submit" class="btn btn-primary pull-right" name="action" value="update2">Update quota</button>
+              <a class="btn btn-danger" href="edit_quota.php?action=remove&<?php echo $field_id; ?>=<?php echo $id; ?>">Remove quota</a>
+              <button type="submit" class="btn btn-primary pull-right" name="action" value="update">Update quota</button>
+			<?php } else { ?>
+			  <button type="submit" class="btn btn-primary pull-right" name="action" value="new">New quota</button>
+			
+			<?php } ?>
+				
             </div>
           </div>
         </form>
