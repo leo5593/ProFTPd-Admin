@@ -164,11 +164,12 @@ if (empty($errormsg) && !empty($_REQUEST["action"]) && $_REQUEST["action"] == "u
     } else {
       /* update quota data */
       $quota = $ac->get_quota_by_id($id)[0];
+	  
+	  $infomsg = 'Quota "'.$quota["quotaname"].'" updated successfully.';
     }
   } else {
     $errormsg = implode($errors, "<br />\n");
   }
-  
 }
 else if (empty($errormsg) && !empty($_REQUEST["action"]) && $_REQUEST["action"] == "remove")
 {
@@ -251,6 +252,8 @@ else if (empty($errormsg) && !empty($_REQUEST["action"]) && $_REQUEST["action"] 
 		//var_dump($v);
 	  $id=$v;
       $quota = $ac->get_quota_by_id($id)[0];
+	  
+	  $infomsg = 'Quota "'.$quota["quotaname"].'" added successfully.';
     }
 	
 }
@@ -611,18 +614,22 @@ include ("includes/header.php");
             
 			<?php } else { ?>
 				<select class="form-control" id="<?php echo $field_quota_name; ?>" name="<?php echo $field_quota_name; ?>" required>
-				    <option value="" ></option>
+					<option value="" ></option>
+				    <optgroup label="Groups">
 					<?php foreach ($groups as $key => $value){
 							if(!in_array("group-".$value,$quotas)) {
 						?>
-					<option value="group-<?php echo $value ?>" ><?php echo "Group> $value" ?></option>
+					<option value="group-<?php echo $value ?>" ><?php echo $value ?></option>
 						<?php } } ?>
-					<option value="" ></option>
+					</optgroup>	
+					<optgroup label="Users">	
+					
 					<?php foreach ($users as $key => $value){
 							if(!in_array("user-".$value[$field_userid],$quotas)) {						
 							?>
-					<option value="user-<?php echo $value[$field_userid] ?>" ><?php echo "User> ".$value[$field_userid] ?></option>
+					<option value="user-<?php echo $value[$field_userid] ?>" ><?php echo $value[$field_userid] ?></option>
 						<?php } } ?>
+					</optgroup>
 				</select>
 			<?php } ?>
 			</div>
