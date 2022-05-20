@@ -76,6 +76,36 @@ if (!empty($all_users)) {
   }
 }
 
+function formatBytes($bytes, $precision = 2) { 
+    $units = array('B', 'KB', 'MB', 'GB', 'TB'); 
+
+    $bytes = max($bytes, 0);
+	
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024)); 
+    $pow = min($pow, count($units) - 1); 
+
+    // Uncomment one of the following alternatives
+    $bytes /= pow(1024, $pow);
+    // $bytes /= (1 << (10 * $pow)); 
+
+    return round($bytes, $precision) . ' ' . $units[$pow]; 
+} 
+
+function formatNumber($bytes, $precision = 1) { 
+    $units = array('', 'K', 'M', 'G', 'T'); 
+
+    $bytes = max($bytes, 0);
+	
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024)); 
+    $pow = min($pow, count($units) - 1); 
+
+    // Uncomment one of the following alternatives
+    //$bytes /= pow(1024, $pow);
+     $bytes /= (1 << (10 * $pow)); 
+
+    return round($bytes, $precision) . ' ' . $units[$pow]; 
+} 
+
 include ("includes/header.php");
 ?>
 <?php include ("includes/messages.php"); ?>
@@ -168,11 +198,11 @@ include ("includes/header.php");
                       <?php } ?>
                     </td>
                     <td class="pull-middle hidden-xs hidden-sm hidden-md"><?php echo $user[$field_last_login]; ?></td>
-                    <td class="pull-middle hidden-xs hidden-sm"><?php echo $user[$field_login_count]; ?></td>
-                    <td class="pull-middle hidden-xs"><?php echo sprintf("%2.1f", $user[$field_bytes_in_used] / 1048576); ?></td>
-                    <td class="pull-middle hidden-xs"><?php echo sprintf("%2.1f", $user[$field_bytes_out_used] / 1048576); ?></td>
-                    <td class="pull-middle hidden-xs"><?php echo $user[$field_files_in_used]; ?></td>
-                    <td class="pull-middle hidden-xs"><?php echo $user[$field_files_out_used]; ?></td>
+                    <td class="pull-middle hidden-xs hidden-sm"><?php echo formatNumber($user[$field_login_count]); ?></td>
+                    <td class="pull-middle hidden-xs text-right"><?php echo formatBytes( $user[$field_bytes_in_used]); ?></td>
+                    <td class="pull-middle hidden-xs text-right"><?php echo formatBytes( $user[$field_bytes_out_used]); ?></td>
+                    <td class="pull-middle hidden-xs text-right"><?php echo formatNumber($user[$field_files_in_used]); ?></td>
+                    <td class="pull-middle hidden-xs text-right"><?php echo formatNumber($user[$field_files_out_used]); ?></td>
                     <td class="pull-middle hidden-xs hidden-sm"><?php echo $user[$field_homedir]; ?></td>
                     <td class="pull-middle hidden-xs hidden-sm"><?php echo $user[$field_email]; ?></td>
                     <td class="pull-middle"><?php echo ($user[$field_disabled] ? 'Yes' : 'No'); ?></td>
